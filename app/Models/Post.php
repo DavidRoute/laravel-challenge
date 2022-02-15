@@ -14,6 +14,10 @@ class Post extends Model
         'description',
         'author_id'
     ];
+
+    /**
+     * Relationships.
+     */
     
     public function tags()
     {
@@ -22,6 +26,14 @@ class Post extends Model
     
     public function likes()
     {
-        return $this->hasMany(Like::class);
+        return $this->belongsToMany(User::class, 'likes');
+    }
+
+    /**
+     * Helper methods.
+     */
+    public function isLiked() 
+    {
+        return !! $this->likes()->where('user_id', auth()->id())->count();
     }
 }

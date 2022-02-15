@@ -41,4 +41,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Relationships.
+     */
+    public function likes() 
+    {
+        return $this->belongsToMany(Post::class, 'likes');
+    }
 }

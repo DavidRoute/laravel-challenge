@@ -23,44 +23,22 @@ class PostController extends Controller
             'like'   => 'required|boolean'
         ]);
         
-        $post = Post::find($request->post_id);
-        if(!$post) {
+        $post = Post::findOrFail($request->post_id);
+
+        if ($post->author_id == auth()->id()) {
             return response()->json([
-                'status' => 404,
-                'message' => 'model not found'
-            ]);
-        }
-        
-        if($post->user_id == auth()->id()) {
-            return response()->json([
-                'status' => 500,
+                'status'  => 422,
                 'message' => 'You cannot like your post'
-            ]);
+            ], 422);
         }
         
-        $like = Like::where('post_id', $request->post_id)->where('user_id', auth()->id())->first();
-        if($like && $like->post_id == $request->post_id && $request->like) {
-            return response()->json([
-                'status' => 500,
-                'message' => 'You already liked this post'
-            ]);
-        }elseif($like && $like->post_id == $request->post_id && !$request->like) {
-            $like->delete();
-            
-            return response()->json([
-                'status' => 200,
-                'message' => 'You unlike this post successfully'
-            ]);
-        }
-        
-        Like::create([
-            'post_id' => $request->post_id,
-            'user_id' => auth()->id()
-        ]);
-        
+        $toggleLike = auth()->user()->likes()->toggle($post);
+
+        $isLiked = !! count($toggleLike['attached']);
+
         return response()->json([
             'status' => 200,
-            'message' => 'You like this post successfully'
+            'message' => $isLiked ? 'You like this post successfully': 'You unlike this post successfully'
         ]);
     }
 }
